@@ -36,6 +36,5 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Environment variables
 .env
 
-# Public
-public/index.js
-public/output.css
+# GCP
+gcp.json

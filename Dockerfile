@@ -4,9 +4,6 @@ FROM oven/bun
 # Set working directory
 WORKDIR /app
 
-# Install curl
-RUN apt-get update && apt-get install -y curl git
-
 # Copy package files
 COPY package*.json bun.lock ./
 
@@ -14,13 +11,7 @@ COPY package*.json bun.lock ./
 COPY . .
 
 # Install dependencies
-RUN bun install
-
-# Custom Swagger
-RUN bun run swagger:build
-
-# Expose port 3000
-EXPOSE 3000
+RUN bun install --production
 
 # Start the application
 CMD ["bun", "start"] 

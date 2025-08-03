@@ -1,5 +1,5 @@
 #!/bin/bash
 
 bun install
-bun prepare
+bun run husky
 bun swagger:build
