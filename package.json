@@ -4,21 +4,17 @@
 	"version": "1.0.0",
 	"private": true,
 	"scripts": {
-		"start": "bun src/job.ts",
-		"dev": "bun --watch src/server.ts",
+		"start": "bun src/index.ts",
 		"lint": "bunx --bun biome check --write",
-		"swagger:build": "cd node_modules/@elysiajs/swagger && bun install && bun run build || true && rm -rf node_modules && cd ../../.."
+		"build": "bun build src/index.ts --outfile gcp-codespaces-manager --compile"
 	},
 	"dependencies": {
 		"@google-cloud/compute": "^6.0.0",
-		"cloudflare": "^4.5.0"
+		"@google-cloud/run": "^3.0.0",
+		"cloudflare": "^4.5.0",
+		"google-auth-library": "^10.2.1"
 	},
 	"devDependencies": {
-		"elysia": "latest",
-		"@grotto/logysia": "^0.1.6",
-		"@elysiajs/cors": "^1.3.3",
-		"@elysiajs/server-timing": "^1.3.0",
-		"@elysiajs/swagger": "github:gsbenevides2/elysia-swagger",
 		"@biomejs/biome": "2.1.3",
 		"@commitlint/config-conventional": "^19.8.1",
 		"bun-types": "latest",

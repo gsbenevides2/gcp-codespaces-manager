@@ -1,5 +1,5 @@
 # Use the official Bun image
-FROM oven/bun
+FROM oven/bun:
 
 # Set working directory
 WORKDIR /app
@@ -12,6 +12,7 @@ COPY . .
 
 # Install dependencies
 RUN bun install --production
+RUN bun run build
 
 # Start the application
-CMD ["bun", "start"] 
+CMD ["./gcp-codespaces-manager" "env"] 

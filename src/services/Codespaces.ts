@@ -1,9 +1,12 @@
 import compute from "@google-cloud/compute";
 import Cloudflare from "cloudflare";
-import { wait } from "../../utils/wait";
+import { wait } from "../utils/wait";
+import { GoogleAuth } from "./GoogleAuth";
+
+const PROJECT_ID = await GoogleAuth.getProjectId();
 
 export class CodespacesService {
-	private static PROJECT_ID = Bun.env.PROJECT_ID ?? "";
+	private static PROJECT_ID = PROJECT_ID;
 	private static CLOUDFLARE_ZONE_ID = Bun.env.CLOUDFLARE_ZONE_ID ?? "";
 	private static CLOUDFLARE_RECORD_ID = Bun.env.CLOUDFLARE_RECORD_ID ?? "";
 	private static CLOUDFLARE_RECORD_NAME = Bun.env.CLOUDFLARE_RECORD_NAME ?? "";
@@ -21,20 +24,16 @@ export class CodespacesService {
 		`https://www.googleapis.com/compute/v1/projects/${CodespacesService.PROJECT_ID}/global/networks/default`;
 
 	private static instancesClient = new compute.InstancesClient({
-		scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-		fallback: "rest",
+		scopes: GoogleAuth.defaultScopes,
+		fallback: GoogleAuth.defaultFallback,
 	});
 
 	private static imagesClient = new compute.ImagesClient({
-		scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-		fallback: "rest",
+		scopes: GoogleAuth.defaultScopes,
+		fallback: GoogleAuth.defaultFallback,
 	});
 
 	private static cloudflare = new Cloudflare();
-
-	private static async getProjectId() {
-		return CodespacesService.PROJECT_ID;
-	}
 
 	static async start() {
 		await CodespacesService.createInstance();
@@ -44,9 +43,8 @@ export class CodespacesService {
 	}
 
 	private static async getInstance() {
-		const projectId = await CodespacesService.getProjectId();
 		const [instance] = await CodespacesService.instancesClient.get({
-			project: projectId,
+			project: CodespacesService.PROJECT_ID,
 			zone: CodespacesService.BR_SP_ZONE,
 			instance: CodespacesService.INSTANCE_NAME,
 		});
@@ -79,9 +77,8 @@ export class CodespacesService {
 	}
 
 	private static async getDiskImage() {
-		const projectId = await CodespacesService.getProjectId();
 		const [image] = await CodespacesService.imagesClient.get({
-			project: projectId,
+			project: CodespacesService.PROJECT_ID,
 			image: CodespacesService.INSTANCE_NAME,
 		});
 		return image;
@@ -98,10 +95,9 @@ export class CodespacesService {
 	}
 
 	private static async stopInstance() {
-		const projectId = await CodespacesService.getProjectId();
 		console.log("Stopping instance...");
 		await CodespacesService.instancesClient.stop({
-			project: projectId,
+			project: CodespacesService.PROJECT_ID,
 			zone: CodespacesService.BR_SP_ZONE,
 			instance: CodespacesService.INSTANCE_NAME,
 		});
@@ -109,7 +105,6 @@ export class CodespacesService {
 	}
 
 	private static async createDiskImage() {
-		const projectId = await CodespacesService.getProjectId();
 		const instance = await CodespacesService.getInstance();
 		const sourceDisk = instance.disks?.[0].source;
 		console.log("Creating disk image sourceDisk", sourceDisk);
@@ -119,17 +114,16 @@ export class CodespacesService {
 				sourceDisk: sourceDisk,
 				storageLocations: [CodespacesService.US_REGION],
 			},
-			project: projectId,
+			project: CodespacesService.PROJECT_ID,
 		});
 		await CodespacesService.waitDiskImageToBeCreated();
 	}
 
 	private static async createInstance() {
 		console.log("Creating instance...");
-		const projectId = await CodespacesService.getProjectId();
 		const image = await CodespacesService.getDiskImage();
 		await CodespacesService.instancesClient.insert({
-			project: projectId,
+			project: CodespacesService.PROJECT_ID,
 			zone: CodespacesService.BR_SP_ZONE,
 			instanceResource: {
 				name: CodespacesService.INSTANCE_NAME,
@@ -166,20 +160,18 @@ export class CodespacesService {
 	}
 
 	private static async deleteDiskImage() {
-		const projectId = await CodespacesService.getProjectId();
 		console.log("Deleting disk image...");
 		await CodespacesService.imagesClient.delete({
-			project: projectId,
+			project: CodespacesService.PROJECT_ID,
 			image: CodespacesService.INSTANCE_NAME,
 		});
 		console.log("Disk image deleted");
 	}
 
 	private static async deleteInstance() {
-		const projectId = await CodespacesService.getProjectId();
 		console.log("Deleting instance...");
 		await CodespacesService.instancesClient.delete({
-			project: projectId,
+			project: CodespacesService.PROJECT_ID,
 			zone: CodespacesService.BR_SP_ZONE,
 			instance: CodespacesService.INSTANCE_NAME,
 		});
