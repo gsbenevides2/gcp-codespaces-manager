@@ -16,11 +16,11 @@ COPY tsconfig.json ./
 RUN bun install --frozen-lockfile
 
 # Build the application
-RUN bun build src/index.ts --target node --minify --outfile index.js
+RUN bun build src/index.ts --target bun --minify --outfile index.js
 
 
 # Production stage
-FROM gcr.io/distroless/nodejs
+FROM oven/bun:slim
 
 # Set working directory
 WORKDIR /app
@@ -32,4 +32,4 @@ COPY --chown=nonroot:nonroot --from=builder /app/index.js ./
 COPY --chown=nonroot:nonroot package.json ./
 
 # Use exec form for better signal handling
-CMD ["./index.js", "env"] 
+CMD ["bun", "./index.js", "env"] 
