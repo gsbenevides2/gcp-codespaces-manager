@@ -26,10 +26,10 @@ FROM oven/bun:slim
 WORKDIR /app
 
 # Copy only the built binary from build stage with executable permissions preserved
-COPY --chown=nonroot:nonroot --from=builder /app/index.js ./
+COPY --from=builder /app/index.js ./
 
 # Copy package.json
-COPY --chown=nonroot:nonroot package.json ./
+COPY package.json ./
 
 # Use exec form for better signal handling
 CMD ["bun", "./index.js", "env"] 
