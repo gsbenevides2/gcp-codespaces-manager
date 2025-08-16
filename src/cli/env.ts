@@ -8,5 +8,6 @@ export async function env() {
 		await CodespacesService.stop();
 	} else {
 		console.error("Invalid job type");
+		process.exit(1);
 	}
 }

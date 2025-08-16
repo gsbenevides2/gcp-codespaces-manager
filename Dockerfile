@@ -1,18 +1,35 @@
-# Use the official Bun image
-FROM oven/bun:slim
+# Multi-stage build for optimal image size
+# Build stage
+FROM oven/bun:slim AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json bun.lock ./
+# Copy package files first for better Docker layer caching
+COPY package.json bun.lock ./
 
-# Copy project files
-COPY . .
+# Copy source code
+COPY src/ ./src/
+COPY tsconfig.json ./
 
-# Install dependencies
-RUN bun install --production
-RUN bun run build
+# Install all dependencies (including dev dependencies for build)
+RUN bun install --frozen-lockfile
 
-# Start the application
-CMD ["./gcp-codespaces-manager" "env"] 
+# Build the application
+RUN bun build src/index.ts --target node --minify --outfile index.js
+
+
+# Production stage
+FROM gcr.io/distroless/nodejs
+
+# Set working directory
+WORKDIR /app
+
+# Copy only the built binary from build stage with executable permissions preserved
+COPY --chown=nonroot:nonroot --from=builder /app/index.js ./
+
+# Copy package.json
+COPY --chown=nonroot:nonroot package.json ./
+
+# Use exec form for better signal handling
+CMD ["./index.js", "env"] 

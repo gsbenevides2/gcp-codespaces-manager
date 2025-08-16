@@ -6,7 +6,7 @@
 	"scripts": {
 		"start": "bun src/index.ts",
 		"lint": "bunx --bun biome check --write",
-		"build": "bun build src/index.ts --outfile gcp-codespaces-manager --compile"
+		"build": "bun build  src/index.ts --compile --minify --outfile gcp-codespaces-manager"
 	},
 	"dependencies": {
 		"@google-cloud/compute": "^6.0.0",
