@@ -2,14 +2,15 @@ import compute from "@google-cloud/compute";
 import Cloudflare from "cloudflare";
 import { wait } from "../utils/wait";
 import { GoogleAuth } from "./GoogleAuth";
+import { promiseIgnoreError } from "../utils/ignoreError";
 
 const PROJECT_ID = await GoogleAuth.getProjectId();
 
 export class CodespacesService {
 	private static PROJECT_ID = PROJECT_ID;
 	private static CLOUDFLARE_ZONE_ID = Bun.env.CLOUDFLARE_ZONE_ID ?? "";
-	private static CLOUDFLARE_RECORD_ID = Bun.env.CLOUDFLARE_RECORD_ID ?? "";
 	private static CLOUDFLARE_RECORD_NAME = Bun.env.CLOUDFLARE_RECORD_NAME ?? "";
+	private static SSH_KEY = Bun.env.SSH_KEY ?? "";
 	private static BR_SP_ZONE = "southamerica-east1-c";
 	private static US_REGION = "us-central1";
 	private static INSTANCE_NAME = "codespaces";
@@ -69,8 +70,8 @@ export class CodespacesService {
 	private static async waitInstanceToBeReady() {
 		console.log("Waiting for instance to be ready...");
 		while (true) {
-			const instance = await CodespacesService.getInstance();
-			if (instance.status === "RUNNING") break;
+			const instance = await promiseIgnoreError(CodespacesService.getInstance());
+			if (instance?.status === "RUNNING") break;
 			await wait(1000);
 		}
 		console.log("Instance ready");
@@ -87,7 +88,7 @@ export class CodespacesService {
 	static async waitDiskImageToBeCreated() {
 		console.log("Waiting for disk image to be created...");
 		while (true) {
-			const image = await CodespacesService.getDiskImage();
+			const image = await promiseIgnoreError(CodespacesService.getDiskImage());
 			if (image?.status === "READY") break;
 			await wait(1000);
 		}
@@ -143,6 +144,12 @@ export class CodespacesService {
 						},
 					},
 				],
+				metadata: {
+					items: [{
+						key: "ssh-keys",
+						value: "gsbenevides2:" + CodespacesService.SSH_KEY
+					}]
+				},
 				networkInterfaces: [
 					{
 						network: CodespacesService.NETWORK,
@@ -178,6 +185,17 @@ export class CodespacesService {
 		console.log("Instance deleted");
 	}
 
+	private static async findDnsRecord() {
+		const records = await CodespacesService.cloudflare.dns.records.list({
+			zone_id: CodespacesService.CLOUDFLARE_ZONE_ID,
+			name: {
+				exact: CodespacesService.CLOUDFLARE_RECORD_NAME,
+			},
+			type: "A",
+		});
+		return records.result?.[0] ?? null;
+	}
+
 	private static async applyToCloudflare() {
 		console.log("Applying to Cloudflare...");
 		const instance = await CodespacesService.getInstance();
@@ -187,17 +205,33 @@ export class CodespacesService {
 			return;
 		}
 		console.log("IP", ip);
-		await CodespacesService.cloudflare.dns.records.edit(
-			CodespacesService.CLOUDFLARE_RECORD_ID,
-			{
+
+		const existingRecord = await CodespacesService.findDnsRecord();
+
+		if (existingRecord) {
+			console.log("DNS record found, updating...");
+			await CodespacesService.cloudflare.dns.records.edit(existingRecord.id, {
 				zone_id: CodespacesService.CLOUDFLARE_ZONE_ID,
 				type: "A",
 				name: CodespacesService.CLOUDFLARE_RECORD_NAME,
 				content: ip,
 				ttl: 60,
 				proxied: false,
-			},
-		);
+			});
+			console.log("DNS record updated");
+		} else {
+			console.log("DNS record not found, creating...");
+			await CodespacesService.cloudflare.dns.records.create({
+				zone_id: CodespacesService.CLOUDFLARE_ZONE_ID,
+				type: "A",
+				name: CodespacesService.CLOUDFLARE_RECORD_NAME,
+				content: ip,
+				ttl: 60,
+				proxied: false,
+			});
+			console.log("DNS record created");
+		}
+
 		console.log("IP applied to Cloudflare");
 	}
 
