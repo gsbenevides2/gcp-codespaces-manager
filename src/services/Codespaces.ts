@@ -11,7 +11,7 @@ export class CodespacesService {
 	private static CLOUDFLARE_ZONE_ID = Bun.env.CLOUDFLARE_ZONE_ID ?? "";
 	private static CLOUDFLARE_RECORD_NAME = Bun.env.CLOUDFLARE_RECORD_NAME ?? "";
 	private static SSH_KEY = Bun.env.SSH_KEY ?? "";
-	private static BR_SP_ZONE = "us-central1-c";
+	private static BR_SP_ZONE = "southamerica-east1-a";
 	private static US_REGION = "us-central1";
 	private static INSTANCE_NAME = "codespaces";
 	private static STOPPED_STATUS = ["SUSPENDED", "TERMINATED"];
