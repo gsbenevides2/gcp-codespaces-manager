@@ -11,13 +11,13 @@ export class CodespacesService {
 	private static CLOUDFLARE_ZONE_ID = Bun.env.CLOUDFLARE_ZONE_ID ?? "";
 	private static CLOUDFLARE_RECORD_NAME = Bun.env.CLOUDFLARE_RECORD_NAME ?? "";
 	private static SSH_KEY = Bun.env.SSH_KEY ?? "";
-	private static BR_SP_ZONE = "southamerica-east1-c";
+	private static BR_SP_ZONE = "us-central1-c";
 	private static US_REGION = "us-central1";
 	private static INSTANCE_NAME = "codespaces";
 	private static STOPPED_STATUS = ["SUSPENDED", "TERMINATED"];
 	private static MACHINE_TYPE =
 		`https://www.googleapis.com/compute/v1/projects/${CodespacesService.PROJECT_ID}/zones/${CodespacesService.BR_SP_ZONE}/machineTypes/e2-standard-2`;
-	private static DISK_SIZE = 30;
+	private static DISK_SIZE = 40;
 	private static DISK_TYPE =
 		`https://www.googleapis.com/compute/v1/projects/${CodespacesService.PROJECT_ID}/zones/${CodespacesService.BR_SP_ZONE}/diskTypes/pd-ssd`;
 
