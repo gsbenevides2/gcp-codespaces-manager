@@ -16,7 +16,7 @@ export class CodespacesService {
 	private static INSTANCE_NAME = "codespaces";
 	private static STOPPED_STATUS = ["SUSPENDED", "TERMINATED"];
 	private static MACHINE_TYPE =
-		`https://www.googleapis.com/compute/v1/projects/${CodespacesService.PROJECT_ID}/zones/${CodespacesService.BR_SP_ZONE}/machineTypes/e2-standard-2`;
+		`https://www.googleapis.com/compute/v1/projects/${CodespacesService.PROJECT_ID}/zones/${CodespacesService.BR_SP_ZONE}/machineTypes/e2-standard-4`;
 	private static DISK_SIZE = 40;
 	private static DISK_TYPE =
 		`https://www.googleapis.com/compute/v1/projects/${CodespacesService.PROJECT_ID}/zones/${CodespacesService.BR_SP_ZONE}/diskTypes/pd-ssd`;
